@@ -5,7 +5,7 @@ import matplotlib as plt
 class FeedForwardNetwork:
     """
     A single hidden layer (for now) feed-forward neural network
-    """"
+    """
     def __init__(
         nodes_per_layer,  # 1D array w/ num. of nodes per layer
         learning_rate,
@@ -32,8 +32,9 @@ class FeedForwardNetwork:
         for index, nodes in enumerate(nodes_per_layer[:-1]):
             nodes_this_layer = nodes
             nodes_next_layer = nodes_per_layer[index + 1]
-            weight_matrix = np.zeros((nodes_this_layer,
-                                      nodes_next_layer), dtype=float)
+            # Note the dimensions of the weight matrix:
+            weight_matrix = np.zeros((nodes_next_layer,
+                                      nodes_this_layer), dtype=float)
             self.weights.append(weight_matrix)
 
     def calculateDeltas(self, input_per_layer, output_per_layer, target):
@@ -47,15 +48,15 @@ class FeedForwardNetwork:
         for index in range(len(deltas) - 2, 0, -1):
             deltas[index] = \
                 np.multiply(self.activationDerv(input_per_layer[index]),
-                            np.matmul(self.weights[index],
+                            np.matmul(self.weights[index].T,
                                       deltas[index + 1]))
         return deltas
 
     def updateWeights(self, delta_per_layer, output_per_layer):
         for index in range(len(self.weights)):
             weight_delta = self.learning_rate * np.multiply.outer([
-                output_per_layer[index],  # outputs of previous layer
-                delta_per_layer[index + 1]  # deltas of next layer
+                delta_per_layer[index + 1],  # deltas of next layer
+                output_per_layer[index]  # outputs of previous layer
             ])
             self.weights[index] -= weight_delta
 
