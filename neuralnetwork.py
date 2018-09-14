@@ -2,18 +2,19 @@ import numpy as np
 import matplotlib as plt
 
 
-class FeedForwardNetwork:
+class NeuralNetwork:
     """
     A single hidden layer (for now) feed-forward neural network
     """
     def __init__(
+        self,
         nodes_per_layer,  # 1D array w/ num. of nodes per layer
-        learning_rate,
         # activation='sigmoid'
     ):
         self.initialiseWeights(nodes_per_layer)
+        self.nodes_per_layer = nodes_per_layer
         self.num_layers = len(nodes_per_layer)
-        self.learning_rate = learning_rate
+        self.learning_rate = 0.01  # by default
         self.activation = self.sigmoid  # for now, only using sigmoid
         self.activationDerv = self.sigmoidDerv
 
@@ -33,8 +34,8 @@ class FeedForwardNetwork:
             nodes_this_layer = nodes
             nodes_next_layer = nodes_per_layer[index + 1]
             # Note the dimensions of the weight matrix:
-            weight_matrix = np.zeros((nodes_next_layer,
-                                      nodes_this_layer), dtype=float)
+            weight_matrix = np.random.uniform(size=(nodes_next_layer,
+                                                    nodes_this_layer))
             self.weights.append(weight_matrix)
 
     def calculateDeltas(self, input_per_layer, output_per_layer, target):
@@ -54,10 +55,10 @@ class FeedForwardNetwork:
 
     def updateWeights(self, delta_per_layer, output_per_layer):
         for index in range(len(self.weights)):
-            weight_delta = self.learning_rate * np.multiply.outer([
+            weight_delta = self.learning_rate * np.outer(
                 delta_per_layer[index + 1],  # deltas of next layer
                 output_per_layer[index]  # outputs of previous layer
-            ])
+            )
             self.weights[index] -= weight_delta
 
     def feedForward(self, x):
@@ -73,16 +74,43 @@ class FeedForwardNetwork:
             outputs_per_layer.append(output_vec)
         return inputs_per_layer, outputs_per_layer
 
+    def preProcessData(self, D, layer=None):
+        # Format input dimensions
+        if len(D[0].shape) == 0:
+            D = np.array([np.reshape(x, (1, 1)) for x in D])
+        elif len(D[0].shape) == 1:
+            D = np.array([np.reshape(x, (x.shape[0], 1)) for x in D])
+        else:
+            raise ValueError('Input to network must be a column vector')
+
+        # Check if data compatible with network
+        if layer == 'input':
+            num_nodes_compare = self.nodes_per_layer[0]
+        elif layer == 'output':  # 'output'
+            num_nodes_compare = self.nodes_per_layer[-1]
+        else:
+            raise ValueError('Pass either \'input\' or \'output\''
+                             ' as layer parameter')
+        if D[0].shape[0] != num_nodes_compare:
+            raise ValueError('Data dimensions must match those of network')
+        return D
+
     def train(self, X, Y):
         """Train the network based on input data"""
+        X = self.preProcessData(X, layer='input')
+        Y = self.preProcessData(Y, layer='output')
         for x, y in zip(X, Y):
             inputs, outputs = self.feedForward(x)
             deltas = self.calculateDeltas(inputs, outputs, y)
+            print('Deltas:\n', deltas)
             self.updateWeights(deltas, outputs)
+            print('Weights:\n', self.weights)
+            print('-----------')
 
     def test(self, X):
         """Make predictions on test data using weights learned during
         training"""
+        X = self.preProcessData(X, layer='input')
         predictions = []
         for x in X:
             _, outputs = self.feedForward(x)
