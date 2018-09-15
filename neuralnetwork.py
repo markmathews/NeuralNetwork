@@ -1,3 +1,7 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
 class NeuralNetwork:
     """
     A single hidden layer (for now) feed-forward neural network
