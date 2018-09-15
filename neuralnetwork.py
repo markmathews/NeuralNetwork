@@ -4,7 +4,73 @@ import matplotlib.pyplot as plt
 
 class NeuralNetwork:
     """
-    A single hidden layer (for now) feed-forward neural network
+    A feed-forward neural network
+
+    Attributes
+    -----
+    nodes_per_layer : list
+        Number of nodes at each layer of the network, including input and
+        output layers
+
+    num_layers : int
+        Total number of layers in the network, including input and output
+
+    learning_rate : float
+        The scalar by which weight updates are multiplied to control learning
+
+    weights : list
+        List of weight matrices corresponding to transformations from the
+        output of one layer to the input of the next
+
+    initial_weights_copy : list
+        A copy of the initialised weights
+
+    Y_scale : float
+        The scalar which maps outputs from the range [-1, 1] back to their
+        original range
+
+    Methods
+    -----
+    activation
+        The activation function. Can be set to either self.sigmoid or self.relu
+
+    activationDerv
+        Derivative of the activation function. Can be set to either
+        self.sigmoidDerv or self.reluDerv
+
+    initialiseWeights
+        Initialise weight matrices by sampling from a uniform distribution
+        over [0, 1)
+
+    resetWeights
+        Reset all weights to self.initial_weights_copy
+
+    calculateDeltas
+        Calculate the vectors whose outer product with the outputs from a
+        previous layer give the updates for weights between the two layers
+
+    updateWeights
+        Perform weight updates
+
+    feedForward
+        Propagate an input through the network, returning the inputs and
+        outputs at every layer
+
+    lastOutput
+        Return the output from the last layer for an input vector
+
+    preProcessData
+        Format input data arrays to have shape (d,1) where d represents the
+        dimensionality of each data point
+
+    train
+        Train the network
+
+    test
+        Test the network on some data and return resulting predictions
+
+    show_plot
+        Plot two input data arrays
     """
     def __init__(
         self,
