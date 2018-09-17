@@ -76,7 +76,7 @@ class NeuralNetwork:
         self,
         nodes_per_layer,  # 1D array w/ num. of nodes per layer
         learning_rate=1,
-        activation='relu'
+        activation='sigmoid'
         # activation='sigmoid'
     ):
         self.nodes_per_layer = nodes_per_layer
@@ -170,6 +170,16 @@ class NeuralNetwork:
         _, outputs = self.feedForward(x)
         return outputs[-1]
 
+    def networkError(y, t):
+        """
+        Return the error between final network output and target
+
+        Parameters
+        -----
+        y, t : numpy.ndarray
+        """
+        return 0.5 * ((y - t) ** 2).sum()
+
     def preProcessData(self, D, layer=None):
         # Format input dimensions
         if len(D[0].shape) == 0:
@@ -195,23 +205,29 @@ class NeuralNetwork:
 
         return D
 
-    def train(self, X, Y):
+    def train(self, X, Y, verbose=False):
         """Train the network based on input data"""
-        # Pre-processing
         self.Y_scale = abs(Y).max()
         X = self.preProcessData(X, layer='input')
         Y = self.preProcessData(Y, layer='output')
+        self.network_errors = np.array([])
 
         # Training
         for x, y in zip(X, Y):
             inputs, outputs = self.feedForward(x)
-            print('I:\n-----\n{}\nO:\n-----\n{}'
-                  .format(inputs, outputs))
+            network_error = self.networkError(outputs[-1], y)
+            self.network_errors = np.append(self.network_errors, network_error)
             deltas = self.calculateDeltas(inputs, outputs, y)
             self.updateWeights(deltas, outputs)
-            print('Deltas:\n-----{}\nWeights:\n-----\n{}\n'
-                  .format(deltas, self.weights))
-            print('*-----------'*3 + '*\n')
+
+            if verbose:
+                print('I:\n-----\n{}\nO:\n-----\n{}\n'
+                      .format(inputs, outputs))
+                print('Error:\n-----\n{}\n'
+                      .format(network_error))
+                print('Deltas:\n-----{}\nWeights:\n-----\n{}\n'
+                      .format(deltas, self.weights))
+                print('*-----------'*3 + '*\n')
 
     def test(self, X):
         """Make predictions on test data using weights learned during
@@ -226,5 +242,5 @@ class NeuralNetwork:
         predictions = np.array(predictions) * self.Y_scale
         return predictions
 
-    def show_plot(X, Y):
+    def show_plot(self, X, Y):
         plt.plot(X.flatten(), Y.flatten())
